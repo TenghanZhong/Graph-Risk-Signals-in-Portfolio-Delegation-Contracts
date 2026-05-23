@@ -37,7 +37,8 @@ as Table 1.
 
 ## Figure 1
 
-Manuscript figure: crowding by CVaR95 risk frontier on the 49-industry test set.
+Manuscript figure: crowding by CVaR95 risk frontier on the Industry and ETF
+test sets.
 
 Artifact files:
 
@@ -46,6 +47,21 @@ Artifact files:
 - `figures/fig1_risk_frontier_core.pdf`
 
 The caption numbers are stored in `paper_values/caption_numbers.json`.
+
+## Node-Exposure Mechanism Figure
+
+Mechanism figure: change in induced exposure by graph-risk score quintile.
+
+Artifact files:
+
+- `results/mechanism_node_exposure_data.csv.gz`
+- `results/mechanism_exposure_bins.csv`
+- `paper_values/mechanism_exposure_bins.csv`
+- `figures/fig2_node_exposure_mechanism.pdf`
+
+The deltas are Graph-penalty contract minus Feature-only contract. The
+supplementary penalty-channel version is stored in
+`figures/figS_penalty_channel_mechanism.pdf`.
 
 ## Effort Invariance
 

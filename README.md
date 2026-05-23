@@ -20,7 +20,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Rebuild paper tables and the figure from cached result summaries:
+Rebuild paper tables and figures from cached result summaries:
 
 ```bash
 python run_make_tables.py
@@ -34,8 +34,10 @@ The generated paper-facing outputs are:
 - `results/diagnostic_table.csv`
 - `results/effort_checks.csv`
 - `figures/fig1_risk_frontier_core.pdf`
+- `figures/fig2_node_exposure_mechanism.pdf`
 - `paper_values/table1_values.csv`
 - `paper_values/table2_values.csv`
+- `paper_values/mechanism_exposure_bins.csv`
 - `paper_values/caption_numbers.json`
 
 ## Full Experiment Rerun

@@ -12,8 +12,8 @@ This artifact supports two reproduction modes.
    python scripts/smoke_test.py
    ```
 
-   This checks the paper-facing tables, figure points, caption values, and
-   anonymization scan without requiring raw market data.
+   This checks the paper-facing tables, figure points, mechanism summaries,
+   caption values, and anonymization scan without requiring raw market data.
 
 2. Full experiment rerun from public raw data:
 
@@ -31,10 +31,16 @@ The manuscript tables use:
 
 - `paper_values/table1_values.csv`
 - `paper_values/table2_values.csv`
+- `paper_values/mechanism_exposure_bins.csv`
 - `paper_values/caption_numbers.json`
 
 The cached source summaries used to create them are kept in `results/` with
 their original stable method identifiers.
+
+The node-exposure mechanism figure is rebuilt from
+`results/mechanism_node_exposure_data.csv.gz`. The compressed file contains
+test-state node-level graph-risk scores and induced exposure values, not raw
+market returns.
 
 `docs/MANUSCRIPT_ALIGNMENT.md` maps the paper's main tables, figure, and effort
 checks to the corresponding artifact files.

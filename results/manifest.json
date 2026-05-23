@@ -4,15 +4,22 @@
     "results/multi_seed_cluster_episode_bootstrap.csv",
     "results/multi_seed_random_signal_boundary.csv",
     "results/multi_seed_paired_significance.csv",
-    "results/multi_seed_multiple_testing.csv"
+    "results/multi_seed_multiple_testing.csv",
+    "results/mechanism_node_exposure_data.csv.gz"
   ],
   "generated_files": [
     "results/placement_table.csv",
     "results/diagnostic_table.csv",
     "results/effort_checks.csv",
+    "results/mechanism_exposure_bins.csv",
+    "results/mechanism_penalty_channel_bins.csv",
     "paper_values/table1_values.csv",
     "paper_values/table2_values.csv",
+    "paper_values/mechanism_exposure_bins.csv",
+    "paper_values/mechanism_penalty_channel_bins.csv",
+    "figures/fig1_risk_frontier_core.pdf",
+    "figures/fig2_node_exposure_mechanism.pdf",
     "paper_values/caption_numbers.json"
   ],
-  "note": "CVaR deltas use seed-clustered episode-level evaluation."
+  "note": "CVaR deltas use seed-clustered episode-level evaluation. Mechanism figure uses derived node-level test-state exposure data."
 }

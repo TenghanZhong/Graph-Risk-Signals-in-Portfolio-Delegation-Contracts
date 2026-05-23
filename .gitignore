@@ -21,6 +21,7 @@ data/processed/*
 outputs/
 outputs*/
 *.log
+*.zip
 
 # Local/editor files
 .DS_Store

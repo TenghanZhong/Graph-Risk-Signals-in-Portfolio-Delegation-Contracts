@@ -15,8 +15,10 @@ REQUIRED = [
     "results/diagnostic_table.csv",
     "paper_values/table1_values.csv",
     "paper_values/table2_values.csv",
+    "paper_values/mechanism_exposure_bins.csv",
     "paper_values/caption_numbers.json",
     "figures/fig1_risk_frontier_core.pdf",
+    "figures/fig2_node_exposure_mechanism.pdf",
 ]
 
 BACKSLASH = "\\"
@@ -64,8 +66,9 @@ def main() -> int:
 
     table1_n = csv_len(ROOT / "paper_values" / "table1_values.csv")
     table2_n = csv_len(ROOT / "paper_values" / "table2_values.csv")
-    if table1_n != 6 or table2_n != 6:
-        print(f"Unexpected table rows: table1={table1_n}, table2={table2_n}")
+    mechanism_n = csv_len(ROOT / "paper_values" / "mechanism_exposure_bins.csv")
+    if table1_n != 6 or table2_n != 6 or mechanism_n != 10:
+        print(f"Unexpected table rows: table1={table1_n}, table2={table2_n}, mechanism={mechanism_n}")
         return 1
 
     hits = scan_identity_terms()
