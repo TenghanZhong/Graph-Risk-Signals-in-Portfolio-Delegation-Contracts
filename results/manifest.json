@@ -1,11 +1,10 @@
 {
-  "created_utc": "2026-05-23T01:43:41.708040+00:00",
+  "created_utc": "2026-05-23T01:51:18.530335+00:00",
   "source_files": [
     "results/multi_seed_cluster_episode_bootstrap.csv",
     "results/multi_seed_random_signal_boundary.csv",
     "results/multi_seed_paired_significance.csv",
-    "results/multi_seed_multiple_testing.csv",
-    "results/claim_diagnostics.csv"
+    "results/multi_seed_multiple_testing.csv"
   ],
   "generated_files": [
     "results/placement_table.csv",

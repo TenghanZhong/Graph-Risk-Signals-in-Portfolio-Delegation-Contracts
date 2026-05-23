@@ -15,7 +15,7 @@ The full experiment expects the following files in `data/raw/`:
   `EEM`, `GLD`, `HYG`, `IEF`, `IWM`, `LQD`, `QQQ`, `SPY`, `TLT`, `UUP`,
   `XLB`, `XLE`, `XLF`, `XLI`, `XLK`, `XLP`, `XLRE`, `XLU`, `XLV`, and `XLY`.
 
-The paper-facing cached aggregate summaries in `results/` are included so that
-reviewers can verify table and figure construction without redistributing raw
-data. Raw data should be obtained from the original public providers and remain
-subject to those providers' terms.
+The paper-facing cached aggregate summaries in `results/` allow table and figure
+construction to be checked without redistributing raw data. Raw data should be
+obtained from the original public providers and remain subject to those
+providers' terms.

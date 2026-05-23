@@ -6,9 +6,9 @@ This anonymous artifact supports the CIKM short-paper submission
 The package contains:
 
 - the experiment engine for graph-risk placement diagnostics;
-- scripts that reproduce the paper-facing tables and risk-frontier figure from cached public-result summaries;
+- scripts that reproduce the paper-facing tables and risk-frontier figure from cached summary outputs;
 - documentation for obtaining the public input data needed for a full rerun;
-- anonymization and artifact-scope notes for reviewers.
+- documentation on data provenance, anonymization, and artifact scope.
 
 ## Quick Start
 
@@ -56,9 +56,8 @@ For a smoke-scale execution:
 python run_reproduce.py --data_dir data/raw --out_dir outputs/smoke --quick --seeds 7 --run_neural --epochs 5 --skip_etf
 ```
 
-The full multi-seed neural run is computationally heavier than the table/figure
-rebuild and is intended for reviewers who want to regenerate the cached summaries
-from raw public data.
+The full multi-seed neural run is computationally heavier than the table and
+figure rebuild. It regenerates the cached summaries from raw public inputs.
 
 ## Repository Layout
 
@@ -77,8 +76,8 @@ docs/         Reproducibility, anonymization, and artifact-limit notes.
 
 The Fama-French files and ETF price panels used here are public or publicly
 obtainable inputs. This repository does not redistribute raw market data. It
-includes cached aggregate result summaries and scripts so reviewers can verify
-table construction and rerun the pipeline after obtaining the raw inputs.
+includes cached aggregate result summaries and scripts for verifying table
+construction and rerunning the pipeline after obtaining the raw inputs.
 
 ## License
 

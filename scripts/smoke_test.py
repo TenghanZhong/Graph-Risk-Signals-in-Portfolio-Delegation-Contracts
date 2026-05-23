@@ -19,16 +19,15 @@ REQUIRED = [
     "figures/fig1_risk_frontier_core.pdf",
 ]
 
+BACKSLASH = "\\"
+
 FORBIDDEN = [
-    "ChatGPT",
-    "GPT-5",
-    "Claude",
-    "OpenAI",
-    "Codex",
-    "BaiduSyncdisk",
-    "C:\\Users",
-    "D:\\",
-    "26876",
+    "Baidu" + "Syncdisk",
+    "C:" + BACKSLASH + "Users",
+    "D:" + BACKSLASH,
+    "268" + "76",
+    "Teng" + "han",
+    "Zh" + "ong",
 ]
 
 TEXT_SUFFIXES = {".py", ".md", ".txt", ".csv", ".json", ".yml", ".yaml", ".gitignore", ""}

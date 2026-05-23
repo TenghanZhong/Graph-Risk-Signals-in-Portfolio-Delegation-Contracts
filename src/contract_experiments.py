@@ -209,7 +209,7 @@ class ExperimentConfig:
     hidden_dim: int = 32
     weight_decay: float = 1e-4
     patience: int = 50
-    neural_exact_ic: bool = False  # If True, neural layer uses the exact batched linear-system IC solve.
+    neural_exact_ic: bool = True   # Neural layer uses the exact batched linear-system IC solve.
     torch_threads: int = 1         # Avoid excessive CPU-thread contention on Windows/Anaconda.
 
     # Quick mode overrides
@@ -1964,7 +1964,7 @@ def make_ablation_table(test: EpisodeSet, cfg: ExperimentConfig, out_dir: Path, 
     return df
 
 def run_synthetic_mechanism(cfg: ExperimentConfig, out_dir: Path) -> pd.DataFrame:
-    """Mechanism sanity check: eta increases crowding, lambda decreases crowding."""
+    """Mechanism diagnostic: eta increases crowding, lambda decreases crowding."""
     rng = np.random.default_rng(cfg.random_seed)
     N = 30
     B = 1
@@ -2051,8 +2051,8 @@ def plot_results(out_dir: Path, prefix: str, results: pd.DataFrame, ablation: Op
         plt.scatter(results["CVaR95_loss"], results["mean_payoff"])
         for _, r in results.iterrows():
             plt.annotate(r["method"], (r["CVaR95_loss"], r["mean_payoff"]), fontsize=8)
-        plt.xlabel("CVaR95 principal loss ↓")
-        plt.ylabel("Mean principal payoff ↑")
+        plt.xlabel("CVaR95 principal loss (lower is better)")
+        plt.ylabel("Mean principal payoff (higher is better)")
         plt.title(f"{prefix}: risk-return frontier")
         plt.tight_layout()
         plt.savefig(fig_dir / f"{prefix}_risk_return_frontier.png", dpi=180)
@@ -2063,8 +2063,8 @@ def plot_results(out_dir: Path, prefix: str, results: pd.DataFrame, ablation: Op
         plt.scatter(results["crowding"], results["mean_effort"])
         for _, r in results.iterrows():
             plt.annotate(r["method"], (r["crowding"], r["mean_effort"]), fontsize=8)
-        plt.xlabel("Crowding s'Q s / N ↓")
-        plt.ylabel("Mean effort ↑")
+        plt.xlabel("Crowding s'Q s / N (lower is better)")
+        plt.ylabel("Mean effort (higher is better)")
         plt.title(f"{prefix}: incentive-risk tradeoff")
         plt.tight_layout()
         plt.savefig(fig_dir / f"{prefix}_crowding_effort.png", dpi=180)
@@ -2204,7 +2204,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         window=args.window,
         random_seed=args.seed,
         mc_paths=args.mc_paths,
-        neural_exact_ic=args.exact_neural_ic,
+        neural_exact_ic=not args.approx_neural_ic,
         torch_threads=args.torch_threads,
         crowding_obj_weight=args.crowding_obj_weight,
         effort_target=args.effort_target,
@@ -2258,7 +2258,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         "torch_available": TORCH_AVAILABLE,
     }
 
-    # Optional reviewer-robustness-only mode. This skips fixed baselines, ETF,
+    # Optional compact robustness mode. This skips fixed baselines, ETF,
     # plots, and stress summaries; it trains only the requested GraphSignal-ICL
     # robustness checks. Use this for the compact z_min and projection tables.
     if getattr(args, "robustness_only", False):
@@ -2334,7 +2334,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         industry_all = industry_results.copy()
     industry_all.to_csv(tables_dir / "industry_main_results_all.csv", index=False)
 
-    # Two compact reviewer-facing robustness checks. They are intentionally
+    # Two compact robustness checks. They are intentionally
     # limited to GraphSignal-ICL, so the main experimental structure is unchanged.
     if getattr(args, "run_zmin_sensitivity", False):
         if TORCH_AVAILABLE:
@@ -2492,7 +2492,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--window", type=int, default=252, help="Rolling lookback window in trading days.")
     p.add_argument("--mc_paths", type=int, default=50, help="Bootstrap scenario paths per decision state for MC tail evaluation.")
     p.add_argument("--seed", type=int, default=7, help="Random seed.")
-    p.add_argument("--exact_neural_ic", action="store_true", help="Use exact batched linear-system IC layer for neural contracts. Slower but paper-faithful.")
+    p.add_argument("--approx_neural_ic", action="store_true", help="Use a faster approximate neural IC response instead of the exact batched solve.")
     p.add_argument("--torch_threads", type=int, default=1, help="Number of PyTorch CPU threads. Default 1 for stable Windows runs.")
     p.add_argument("--crowding_obj_weight", type=float, default=0.10, help="Penalty weight on mean model-implied crowding in policy selection/training.")
     p.add_argument("--effort_target", type=float, default=0.040, help="Minimum mean effort target for neural training; set <=0 to disable.")
@@ -2552,7 +2552,7 @@ def aggregate_table_across_seeds(base_out: Path, seeds: List[int], rel_table: st
     write_display_csv(agg, base_out / f"multi_seed_{stem}_summary.csv")
 
 
-REVIEWER_SEED_METRICS = [
+DIAGNOSTIC_SEED_METRICS = [
     "principal_CE",
     "policy_objective",
     "CVaR95_loss",
@@ -2564,7 +2564,7 @@ REVIEWER_SEED_METRICS = [
     "mean_systematic_exposure",
 ]
 
-REVIEWER_EPISODE_METRICS = [
+DIAGNOSTIC_EPISODE_METRICS = [
     "principal_payoff",
     "principal_CVaR95_loss_episode",
     "crowding",
@@ -2573,7 +2573,7 @@ REVIEWER_EPISODE_METRICS = [
     "mean_systematic_exposure",
 ]
 
-REVIEWER_EPS = 1e-12
+DIAGNOSTIC_EPS = 1e-12
 
 LOWER_IS_BETTER_METRICS = {
     "CVaR95_loss",
@@ -2593,7 +2593,7 @@ HIGHER_IS_BETTER_METRICS = {
     "mean_effort",
 }
 
-REVIEWER_COMPARISONS = {
+DIAGNOSTIC_COMPARISONS = {
     "industry": [
         ("GraphSignal-ICL", "GraphSignal-ICL-NoPenalty", "placement_vs_feature_only"),
         ("GraphSignal-ICL", "RawNodeMLP_GLS_NoGraph_HardEffort", "placement_vs_raw_node"),
@@ -2654,7 +2654,7 @@ def bootstrap_delta_summary(values: np.ndarray, reps: int = 5000, seed: int = 20
 def sign_test_pvalue(values: np.ndarray) -> float:
     values = np.asarray(values, dtype=float)
     values = values[np.isfinite(values)]
-    values = values[np.abs(values) > REVIEWER_EPS]
+    values = values[np.abs(values) > DIAGNOSTIC_EPS]
     n = int(len(values))
     if n == 0:
         return np.nan
@@ -2668,7 +2668,7 @@ def sign_test_pvalue(values: np.ndarray) -> float:
 def wilcoxon_pvalue(values: np.ndarray) -> float:
     values = np.asarray(values, dtype=float)
     values = values[np.isfinite(values)]
-    values = values[np.abs(values) > REVIEWER_EPS]
+    values = values[np.abs(values) > DIAGNOSTIC_EPS]
     if len(values) < 2:
         return np.nan
     try:
@@ -2683,9 +2683,9 @@ def sign_consistency(values: np.ndarray) -> Dict[str, int]:
     values = np.asarray(values, dtype=float)
     values = values[np.isfinite(values)]
     return {
-        "n_positive": int(np.sum(values > REVIEWER_EPS)),
-        "n_negative": int(np.sum(values < -REVIEWER_EPS)),
-        "n_zero": int(np.sum(np.abs(values) <= REVIEWER_EPS)),
+        "n_positive": int(np.sum(values > DIAGNOSTIC_EPS)),
+        "n_negative": int(np.sum(values < -DIAGNOSTIC_EPS)),
+        "n_zero": int(np.sum(np.abs(values) <= DIAGNOSTIC_EPS)),
     }
 
 
@@ -2744,13 +2744,13 @@ def read_episode_level_results(base_out: Path, seeds: Sequence[int], dataset: st
 
 def paired_seed_significance_table(base_out: Path, seeds: Sequence[int], reps: int = 10000) -> pd.DataFrame:
     out_rows = []
-    for dataset, comparisons in REVIEWER_COMPARISONS.items():
+    for dataset, comparisons in DIAGNOSTIC_COMPARISONS.items():
         df = read_seed_level_results(base_out, seeds, dataset)
         if df.empty:
             continue
         for treatment, baseline, comparison_type in comparisons:
             comparison = f"{treatment} minus {baseline}"
-            for metric in REVIEWER_SEED_METRICS:
+            for metric in DIAGNOSTIC_SEED_METRICS:
                 if metric not in df.columns:
                     continue
                 pivot = df.pivot_table(index="seed", columns="method", values=metric, aggfunc="first")
@@ -2771,7 +2771,7 @@ def paired_seed_significance_table(base_out: Path, seeds: Sequence[int], reps: i
                         "mean_treatment": mean_treatment,
                         "mean_baseline": mean_baseline,
                         "delta": summary["delta"],
-                        "delta_pct": float(summary["delta"] / (abs(mean_baseline) + REVIEWER_EPS)) if np.isfinite(mean_baseline) else np.nan,
+                        "delta_pct": float(summary["delta"] / (abs(mean_baseline) + DIAGNOSTIC_EPS)) if np.isfinite(mean_baseline) else np.nan,
                         "ci_low": summary["ci_low"],
                         "ci_high": summary["ci_high"],
                         "p_sign": summary["p_sign"],
@@ -2798,13 +2798,13 @@ def paired_seed_significance_table(base_out: Path, seeds: Sequence[int], reps: i
 
 def episode_bootstrap_table(base_out: Path, seeds: Sequence[int], reps: int = 5000) -> pd.DataFrame:
     out_rows = []
-    for dataset, comparisons in REVIEWER_COMPARISONS.items():
+    for dataset, comparisons in DIAGNOSTIC_COMPARISONS.items():
         df = read_episode_level_results(base_out, seeds, dataset)
         if df.empty or "date" not in df.columns:
             continue
         for treatment, baseline, comparison_type in comparisons:
             comparison = f"{treatment} minus {baseline}"
-            for metric in REVIEWER_EPISODE_METRICS:
+            for metric in DIAGNOSTIC_EPISODE_METRICS:
                 if metric not in df.columns:
                     continue
                 pivot = df.pivot_table(index=["seed", "date"], columns="method", values=metric, aggfunc="first")
@@ -2824,7 +2824,7 @@ def episode_bootstrap_table(base_out: Path, seeds: Sequence[int], reps: int = 50
                         "mean_treatment": mean_treatment,
                         "mean_baseline": mean_baseline,
                         "delta": summary["delta"],
-                        "delta_pct": float(summary["delta"] / (abs(mean_baseline) + REVIEWER_EPS)) if np.isfinite(mean_baseline) else np.nan,
+                        "delta_pct": float(summary["delta"] / (abs(mean_baseline) + DIAGNOSTIC_EPS)) if np.isfinite(mean_baseline) else np.nan,
                         "ci_low": summary["ci_low"],
                         "ci_high": summary["ci_high"],
                         "p_two_sided": summary["p_sign"],
@@ -2847,13 +2847,13 @@ def episode_bootstrap_table(base_out: Path, seeds: Sequence[int], reps: int = 50
 
 def cluster_episode_bootstrap_table(base_out: Path, seeds: Sequence[int], reps: int = 5000) -> pd.DataFrame:
     out_rows = []
-    for dataset, comparisons in REVIEWER_COMPARISONS.items():
+    for dataset, comparisons in DIAGNOSTIC_COMPARISONS.items():
         df = read_episode_level_results(base_out, seeds, dataset)
         if df.empty or "date" not in df.columns:
             continue
         for treatment, baseline, comparison_type in comparisons:
             comparison = f"{treatment} minus {baseline}"
-            for metric in REVIEWER_EPISODE_METRICS:
+            for metric in DIAGNOSTIC_EPISODE_METRICS:
                 if metric not in df.columns:
                     continue
                 pivot = df.pivot_table(index=["seed", "date"], columns="method", values=metric, aggfunc="first")
@@ -2878,7 +2878,7 @@ def cluster_episode_bootstrap_table(base_out: Path, seeds: Sequence[int], reps: 
                         "mean_treatment": mean_treatment,
                         "mean_baseline": mean_baseline,
                         "delta": summary["delta"],
-                        "delta_pct": float(summary["delta"] / (abs(mean_baseline) + REVIEWER_EPS)) if np.isfinite(mean_baseline) else np.nan,
+                        "delta_pct": float(summary["delta"] / (abs(mean_baseline) + DIAGNOSTIC_EPS)) if np.isfinite(mean_baseline) else np.nan,
                         "ci_low": summary["ci_low"],
                         "ci_high": summary["ci_high"],
                         "p_two_sided": summary["p_sign"],
@@ -3034,15 +3034,15 @@ def method_design_audit_table(base_out: Path, seeds: Sequence[int]) -> pd.DataFr
         if rows
         else pd.DataFrame(columns=["dataset", "method"] + metadata_cols)
     )
-    write_display_csv(out, base_out / "reviewer_method_design_audit.csv")
+    write_display_csv(out, base_out / "method_design_audit.csv")
     return out
 
 
-def deprecated_random_graph_boundary_note(base_out: Path) -> pd.DataFrame:
+def random_graph_boundary_note(base_out: Path) -> pd.DataFrame:
     out = pd.DataFrame(
         [
             {
-                "status": "deprecated_not_clean_identification",
+                "status": "excluded_from_primary_diagnostic",
                 "reason": "RandomGraphGNN changes message passing, feature mode, and penalty score; use multi_seed_random_signal_boundary.csv for same-architecture random-score evidence.",
                 "replacement": "multi_seed_random_signal_boundary.csv",
             }
@@ -3052,7 +3052,7 @@ def deprecated_random_graph_boundary_note(base_out: Path) -> pd.DataFrame:
     return out
 
 
-def claim_diagnostics_table(paired: pd.DataFrame, boundary: pd.DataFrame, base_out: Path) -> pd.DataFrame:
+def claim_support_table(paired: pd.DataFrame, boundary: pd.DataFrame, base_out: Path) -> pd.DataFrame:
     def supported(dataset: str, comparison_type: str, metrics: Sequence[str], min_count: int = 1) -> bool:
         if paired.empty or "dataset" not in paired.columns:
             return False
@@ -3070,41 +3070,26 @@ def claim_diagnostics_table(paired: pd.DataFrame, boundary: pd.DataFrame, base_o
     rows = [
         {
             "claim": "Explicit risk-penalty placement improves downside/systemic metrics versus graph-score feature-only input.",
-            "required_evidence": "The graph-penalty contract beats the feature-only contract on CVaR/crowding/co-crash paired comparisons.",
+            "evidence": "The graph-penalty contract beats the feature-only contract on CVaR/crowding/co-crash paired comparisons.",
             "status": "supported" if supported("industry", "placement_vs_feature_only", risk_metrics, min_count=2) else "not_supported_or_mixed",
-            "recommended_wording": "Explicit risk-signal penalties yield small but statistically stable reductions in downside and crowding metrics.",
         },
         {
             "claim": "Learned graph-risk scores dominate randomized same-architecture risk scores in all universes.",
-            "required_evidence": "The graph-penalty contract beats the randomized-score contract in both industry and ETF settings.",
+            "evidence": "The graph-penalty contract beats the randomized-score contract in both industry and ETF settings.",
             "status": "missing_random_signal_cell" if not random_signal_available else ("not_supported" if not etf_learned_all else "supported"),
-            "recommended_wording": "Use the randomized-score control before claiming a learned-score boundary.",
         },
         {
             "claim": "The graph-penalty contract improves certainty-equivalent/principal CE.",
-            "required_evidence": "Positive principal_CE delta with CI excluding zero.",
+            "evidence": "Positive principal_CE delta with CI excluding zero.",
             "status": "supported" if supported("industry", "placement_vs_feature_only", ["principal_CE"], min_count=1) else "not_supported_or_mixed",
-            "recommended_wording": "The main effect is downside/systemic-risk control, not CE improvement.",
-        },
-        {
-            "claim": "The contribution is distinct from generic decision-focused learning.",
-            "required_evidence": "Paper positions the design as signal placement in a partially specified constrained decision layer.",
-            "status": "writing_required",
-            "recommended_wording": "We study whether risk signals enter as ordinary neural features or explicit semantic penalty terms, not a new differentiable optimizer.",
-        },
-        {
-            "claim": "The penalty is externally auditable in a real-world regulatory sense.",
-            "required_evidence": "External audit protocol and verified contract settlement data.",
-            "status": "avoid_claim",
-            "recommended_wording": "Use explicit, interpretable, or contractible risk penalty instead of an auditability claim.",
         },
     ]
     out = pd.DataFrame(rows)
-    write_display_csv(out, base_out / "claim_diagnostics.csv")
+    write_display_csv(out, base_out / "claim_support.csv")
     return out
 
 
-def run_reviewer_facing_diagnostics(base_out: Path, seeds: Sequence[int], seed_reps: int = 10000, episode_reps: int = 5000) -> Dict[str, pd.DataFrame]:
+def run_diagnostic_summaries(base_out: Path, seeds: Sequence[int], seed_reps: int = 10000, episode_reps: int = 5000) -> Dict[str, pd.DataFrame]:
     base_out = Path(base_out)
     paired = paired_seed_significance_table(base_out, seeds, reps=seed_reps)
     episode = episode_bootstrap_table(base_out, seeds, reps=episode_reps)
@@ -3112,17 +3097,17 @@ def run_reviewer_facing_diagnostics(base_out: Path, seeds: Sequence[int], seed_r
     boundary = random_signal_boundary_table(paired, base_out)
     multiple = multiple_testing_table(paired, clustered, base_out)
     audit = method_design_audit_table(base_out, seeds)
-    deprecated = deprecated_random_graph_boundary_note(base_out)
-    claims = claim_diagnostics_table(paired, boundary, base_out)
+    random_graph_note = random_graph_boundary_note(base_out)
+    claims = claim_support_table(paired, boundary, base_out)
     return {
         "paired_significance": paired,
         "episode_bootstrap": episode,
         "cluster_episode_bootstrap": clustered,
         "random_signal_boundary": boundary,
-        "deprecated_random_graph_boundary": deprecated,
+        "random_graph_boundary_note": random_graph_note,
         "multiple_testing": multiple,
         "method_design_audit": audit,
-        "claim_diagnostics": claims,
+        "claim_support": claims,
     }
 
 
@@ -3136,7 +3121,7 @@ def aggregate_multi_seed_outputs(base_out: Path, seeds: List[int]) -> None:
     aggregate_table_across_seeds(base_out, seeds, "etf_neural_results.csv", ["method"])
     aggregate_table_across_seeds(base_out, seeds, "industry_zmin_sensitivity.csv", ["z_min", "method"])
     aggregate_table_across_seeds(base_out, seeds, "industry_projection_ablation_results.csv", ["method"])
-    run_reviewer_facing_diagnostics(base_out, seeds)
+    run_diagnostic_summaries(base_out, seeds)
 
 
 def run_multi_seed(args: argparse.Namespace) -> None:
@@ -3151,8 +3136,7 @@ def run_multi_seed(args: argparse.Namespace) -> None:
         seed_args.seed = int(seed)
         seed_args.seeds = ""
         seed_args.out_dir = str(base_out / f"seed_{seed}")
-        # Avoid spending time on figures for every seed unless the user explicitly
-        # wants them. The aggregated CSVs are the important evidence.
+        # Skip per-seed figures by default; aggregate CSVs are the primary output.
         if not getattr(args, "no_plots", False):
             seed_args.no_plots = True
         print("\n" + "=" * 80)
@@ -3187,3 +3171,4 @@ if __name__ == "__main__":
         sys.stdout.flush()
         sys.stderr.flush()
         os._exit(1)
+

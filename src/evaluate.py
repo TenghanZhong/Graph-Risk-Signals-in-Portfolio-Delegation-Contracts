@@ -1,11 +1,11 @@
-"""Evaluation and reviewer-facing diagnostic helpers."""
+"""Evaluation and diagnostic-summary helpers."""
 
 from .contract_experiments import (
     episode_bootstrap_table,
     evaluate_fixed_method,
     paired_seed_significance_table,
     random_signal_boundary_table,
-    run_reviewer_facing_diagnostics,
+    run_diagnostic_summaries,
 )
 
 __all__ = [
@@ -13,5 +13,5 @@ __all__ = [
     "evaluate_fixed_method",
     "paired_seed_significance_table",
     "random_signal_boundary_table",
-    "run_reviewer_facing_diagnostics",
+    "run_diagnostic_summaries",
 ]

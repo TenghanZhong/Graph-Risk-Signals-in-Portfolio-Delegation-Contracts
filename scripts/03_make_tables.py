@@ -108,7 +108,6 @@ def make_tables() -> None:
             "results/multi_seed_random_signal_boundary.csv",
             "results/multi_seed_paired_significance.csv",
             "results/multi_seed_multiple_testing.csv",
-            "results/claim_diagnostics.csv",
         ],
         "generated_files": [
             "results/placement_table.csv",

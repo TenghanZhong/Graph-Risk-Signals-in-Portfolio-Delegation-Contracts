@@ -36,6 +36,9 @@ The manuscript tables use:
 The cached source summaries used to create them are kept in `results/` with
 their original stable method identifiers.
 
+`docs/MANUSCRIPT_ALIGNMENT.md` maps the paper's main tables, figure, and effort
+checks to the corresponding artifact files.
+
 ## Random Seeds
 
 The ten seeds are listed in `config/seeds.txt`.

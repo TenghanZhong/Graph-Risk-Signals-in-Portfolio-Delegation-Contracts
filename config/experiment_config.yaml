@@ -27,6 +27,7 @@ neural:
   validation_patience: 50
   incentive_min: 0.80
   incentive_max: 1.20
+  exact_ic_solve: true
 
 objective:
   cvar_weight: 0.65

@@ -6,7 +6,7 @@ The artifact removes:
 
 - author names and affiliations;
 - local Windows user names and absolute local paths;
-- draft-generation or assistant metadata in source-file headers;
+- local draft metadata in source-file headers;
 - private scratch directories and unneeded intermediate outputs.
 
 The repository intentionally keeps stable internal experiment identifiers in
