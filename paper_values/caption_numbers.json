@@ -1,0 +1,5 @@
+{
+  "industry_crowding_reduction_approx": 0.047,
+  "industry_cvar95_loss_reduction_approx": 0.0075,
+  "source_table": "table1_values.csv"
+}

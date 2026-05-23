@@ -1,0 +1,19 @@
+{
+  "created_utc": "2026-05-23T01:43:41.708040+00:00",
+  "source_files": [
+    "results/multi_seed_cluster_episode_bootstrap.csv",
+    "results/multi_seed_random_signal_boundary.csv",
+    "results/multi_seed_paired_significance.csv",
+    "results/multi_seed_multiple_testing.csv",
+    "results/claim_diagnostics.csv"
+  ],
+  "generated_files": [
+    "results/placement_table.csv",
+    "results/diagnostic_table.csv",
+    "results/effort_checks.csv",
+    "paper_values/table1_values.csv",
+    "paper_values/table2_values.csv",
+    "paper_values/caption_numbers.json"
+  ],
+  "note": "CVaR deltas use seed-clustered episode-level evaluation."
+}

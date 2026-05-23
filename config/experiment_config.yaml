@@ -1,0 +1,36 @@
+lookback_days: 252
+horizon_days: 20
+bootstrap_paths: 50
+graph_propagation_rho: 0.25
+
+industry:
+  train_start: "1990-01-01"
+  train_end: "2005-12-31"
+  validation_start: "2006-01-01"
+  validation_end: "2007-12-31"
+  test_start: "2008-01-01"
+  test_end: "2026-03-31"
+
+etf:
+  train_start: "2015-10-08"
+  train_end: "2018-12-31"
+  validation_start: "2019-01-01"
+  validation_end: "2019-12-31"
+  test_start: "2020-01-01"
+  test_end: "2026-03-16"
+
+neural:
+  hidden_dim: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  max_epochs: 250
+  validation_patience: 50
+  incentive_min: 0.80
+  incentive_max: 1.20
+
+objective:
+  cvar_weight: 0.65
+  payment_sd_weight: 0.05
+  crowding_weight: 0.10
+  effort_shortfall_weight: 50.0
+  turnover_weight: 0.01
